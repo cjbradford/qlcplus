@@ -122,6 +122,7 @@ private slots:
     void slotUniverseSliderValueChanged(quint32, quint32, uchar value);
     void slotUpdateUniverseSliders();
     void slotUniversesWritten(int idx, const QByteArray& ua);
+    void slotBlindClicked(bool toggle);
 
 private:
     QFrame* m_universeGroup;
@@ -131,6 +132,7 @@ private:
     QSpinBox* m_universePageSpin;
     QToolButton* m_universePageDownButton;
     QToolButton* m_universeResetButton;
+    QToolButton* m_blindButton;
     GrandMasterSlider* m_grandMasterSlider;
     QScrollArea* scrollArea;
     QScrollArea* m_chGroupsArea;
