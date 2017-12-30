@@ -472,6 +472,8 @@ void SimpleDesk::resetUniverseSliders()
         if (channel != NULL)
             channel->setValue(0);
     }
+    // Need to clear the programmer here, not just set values to zero
+    m_universeResetButton->click();
 }
 
 void SimpleDesk::initSliderView(bool fullMode)
