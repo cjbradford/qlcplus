@@ -135,6 +135,14 @@ public:
     /** @reimpl */
     void writeDMX(MasterTimer* timer, QList<Universe*> ua);
 
+public:
+    void setBlindMode(bool toggle);
+    bool blindMode();
+
+private:
+    bool m_blindmode;
+
+
 };
 
 /** @} */
