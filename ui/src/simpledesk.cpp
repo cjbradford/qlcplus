@@ -242,6 +242,15 @@ void SimpleDesk::initTopSide()
     m_universeResetButton->setToolTip(tr("Reset universe"));
     uniLay->addWidget(m_universeResetButton);
 
+    m_blindButton = new QToolButton(this);
+    m_blindButton->setIcon(QIcon(":/blind.png"));
+    m_blindButton->setIconSize(QSize(24, 24));
+    m_blindButton->setMinimumSize(QSize(36, 36));
+    m_blindButton->setMaximumSize(QSize(36, 36));
+    m_blindButton->setToolTip(tr("Blind mode"));
+    m_blindButton->setCheckable(true);
+    uniLay->addWidget(m_blindButton);
+
     uniLay->addSpacing(50);
 
     QLabel *label = new QLabel(tr("Universe"));
@@ -462,6 +471,7 @@ void SimpleDesk::initUniversePager()
     connect(m_universePageDownButton, SIGNAL(clicked()), this, SLOT(slotUniversePageDownClicked()));
     connect(m_universePageSpin, SIGNAL(valueChanged(int)), this, SLOT(slotUniversePageChanged(int)));
     connect(m_universeResetButton, SIGNAL(clicked()), this, SLOT(slotUniverseResetClicked()));
+    connect(m_blindButton, SIGNAL(clicked(bool)), this, SLOT(slotBlindClicked(bool)));
 }
 
 void SimpleDesk::resetUniverseSliders()
@@ -607,6 +617,10 @@ void SimpleDesk::slotViewModeClicked(bool toggle)
     m_universePageUpButton->setEnabled(!toggle);
     m_universePageDownButton->setEnabled(!toggle);
     m_universePageSpin->setEnabled(!toggle);
+}
+
+void SimpleDesk::slotBlindClicked(bool toggle) {
+    m_engine->setBlindMode(toggle);
 }
 
 void SimpleDesk::slotUniversePageUpClicked()
@@ -1359,7 +1373,6 @@ void SimpleDesk::slotDialDestroyed(QObject *)
 void SimpleDesk::slotEditCueStackClicked(bool state)
 {
     qDebug() << Q_FUNC_INFO;
-
     slotCueStackSelectionChanged();
 
     if (state == true)

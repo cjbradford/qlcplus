@@ -44,6 +44,7 @@ SimpleDeskEngine::SimpleDeskEngine(Doc* doc)
     Q_ASSERT(doc != NULL);
     m_priority = DMXSource::SimpleDesk;
     doc->masterTimer()->registerDMXSource(this);
+    m_blindmode = false;
 }
 
 SimpleDeskEngine::~SimpleDeskEngine()
@@ -302,13 +303,15 @@ void SimpleDeskEngine::writeDMX(MasterTimer* timer, QList<Universe *> ua)
 {
     QMutexLocker locker(&m_mutex);
 
-    QHashIterator <uint,uchar> it(m_values);
-    while (it.hasNext() == true)
-    {
-        it.next();
-        int uni = it.key() >> 9;
-        int address = it.key() & 0x01FF;
-        ua[uni]->write(address, it.value(), true);
+    if (!m_blindmode) {
+        QHashIterator <uint,uchar> it(m_values);
+        while (it.hasNext() == true)
+        {
+            it.next();
+            int uni = it.key() >> 9;
+            int address = it.key() & 0x01FF;
+            ua[uni]->write(address, it.value(), true);
+        }
     }
 
     foreach (CueStack* cueStack, m_cueStacks)
@@ -329,4 +332,17 @@ void SimpleDeskEngine::writeDMX(MasterTimer* timer, QList<Universe *> ua)
                 cueStack->postRun(timer);
         }
     }
+}
+
+/****************************************************************************
+ * Set and get blind mode - used to disable/enable output of programmer
+ * into the DMX stream in writeDMX
+ ****************************************************************************/
+
+void SimpleDeskEngine::setBlindMode(bool toggle) {
+    m_blindmode = toggle;
+}
+
+bool SimpleDeskEngine::blindMode() {
+    return m_blindmode;
 }
