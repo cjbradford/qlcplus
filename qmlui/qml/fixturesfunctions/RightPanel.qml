@@ -19,6 +19,7 @@
 
 import QtQuick 2.0
 import QtQuick.Layouts 1.0
+import QtQuick.Dialogs 1.1
 
 import org.qlcplus.classes 1.0
 import "."
@@ -30,12 +31,46 @@ SidePanel
 
     function createFunctionAndEditor(fType)
     {
+        var i
         // reset the currently loaded item first
         loaderSource = ""
 
-        var fEditor = functionManager.getEditorResource(fType)
+        if (fType === Function.AudioType)
+        {
+            var extList = functionManager.audioExtensions
+            var exts = qsTr("Audio files") + " ("
+            for (i = 0; i < extList.length; i++)
+                exts += extList[i] + " "
+            exts += ")"
+
+            openFileDialog.fType = fType
+            openFileDialog.nameFilters = [ exts, qsTr("All files") + " (*)" ]
+            openFileDialog.open()
+            return
+        }
+        else if (fType === Function.VideoType)
+        {
+            var videoExtList = functionManager.videoExtensions
+            var picExtList = functionManager.pictureExtensions
+            var vexts = qsTr("Video files") + " ("
+            for (i = 0; i < videoExtList.length; i++)
+                vexts += videoExtList[i] + " "
+            vexts += ")"
+            var pexts = qsTr("Picture files") + " ("
+            for (i = 0; i < picExtList.length; i++)
+                pexts += picExtList[i] + " "
+            pexts += ")"
+
+            openFileDialog.fType = fType
+            openFileDialog.nameFilters = [ vexts, pexts, qsTr("All files") + " (*)" ]
+            openFileDialog.open()
+            return
+        }
+
+
         var newFuncID = functionManager.createFunction(fType)
-        functionManager.setEditorFunction(newFuncID, false)
+        var fEditor = functionManager.getEditorResource(newFuncID)
+        functionManager.setEditorFunction(newFuncID, false, false)
 
         if (fType === Function.ShowType)
         {
@@ -60,7 +95,7 @@ SidePanel
         // reset the currently loaded item first
         loaderSource = ""
         itemID = funcID
-        loaderSource = functionManager.getEditorResource(funcType)
+        loaderSource = functionManager.getEditorResource(funcID)
         animatePanel(true)
     }
 
@@ -68,6 +103,41 @@ SidePanel
     {
         if (item.hasOwnProperty("functionID"))
             item.functionID = itemID
+    }
+
+    FileDialog
+    {
+        id: openFileDialog
+        visible: false
+        selectMultiple: true
+
+        property int fType
+
+        onAccepted:
+        {
+
+            var strArray = []
+            for (var i = 0; i < fileUrls.length; i++)
+                strArray.push("" + fileUrls[i])
+
+            console.log("File list: " + strArray)
+
+            if (strArray.length === 1)
+            {
+                itemID = functionManager.createFunction(fType, strArray)
+                functionManager.setEditorFunction(itemID, false, false)
+                loaderSource = functionManager.getEditorResource(itemID)
+            }
+            else
+            {
+                functionManager.createFunction(fType, strArray)
+                loaderSource = "qrc:/FunctionManager.qml"
+            }
+
+            animatePanel(true)
+            addFunction.checked = false
+            funcEditor.checked = true
+        }
     }
 
     Rectangle
@@ -100,7 +170,7 @@ SidePanel
                     else
                     {
                         functionManager.selectFunctionID(-1, false)
-                        functionManager.setEditorFunction(-1, false)
+                        functionManager.setEditorFunction(-1, false, false)
                     }
                     animatePanel(checked)
                 }
@@ -122,7 +192,11 @@ SidePanel
                     visible: addFunction.checked
                     x: -width
 
-                    onEntryClicked: createFunctionAndEditor(fType)
+                    onEntryClicked:
+                    {
+                        close()
+                        createFunctionAndEditor(fType)
+                    }
                     onClosed: addFunction.checked = false
                 }
             }
@@ -181,7 +255,7 @@ SidePanel
                 height: iconSize
                 imgSource: "qrc:/dmxdump.svg"
                 tooltip: qsTr("Dump on a new Scene")
-                counter: contextManager.dumpValuesCount && (qlcplus.accessMask & App.AC_FunctionEditing)
+                counter: contextManager ? contextManager.dumpValuesCount && (qlcplus.accessMask & App.AC_FunctionEditing) : 0
 
                 onClicked:
                 {
@@ -189,6 +263,7 @@ SidePanel
                     {
                         dmxDumpDialog.sceneID = -1
                         dmxDumpDialog.open()
+                        dmxDumpDialog.focusEditItem()
                     }
                     else
                     {
@@ -215,7 +290,7 @@ SidePanel
                     {
                         anchors.centerIn: parent
                         height: parent.height * 0.7
-                        label: contextManager.dumpValuesCount
+                        label: contextManager ? contextManager.dumpValuesCount : ""
                         fontSize: height
                     }
                 }
@@ -259,6 +334,7 @@ SidePanel
                         dmxDumpDialog.sceneID = id
                         dmxDumpDialog.sceneName = name
                         dmxDumpDialog.open()
+                        dmxDumpDialog.focusEditItem()
                     }
 
                     Rectangle
@@ -271,7 +347,7 @@ SidePanel
                         RobotoText
                         {
                             anchors.centerIn: parent
-                            label: contextManager.dumpValuesCount
+                            label: contextManager ? contextManager.dumpValuesCount : ""
                         }
                     }
                 }

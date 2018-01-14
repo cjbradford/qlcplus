@@ -30,7 +30,7 @@ CustomPopupDialog
     title: qsTr("Enter a name for the scene")
 
     property bool show: !dontAskCheck.checked
-    property int channelsMask: contextManager.dumpChannelMask
+    property int channelsMask: contextManager ? contextManager.dumpChannelMask : 0
     property alias sceneName: nameInputBox.inputText
 
     function getChannelsMask()
@@ -65,6 +65,11 @@ CustomPopupDialog
         return mask
     }
 
+    function focusEditItem()
+    {
+        nameInputBox.selectAndFocus()
+    }
+
     contentItem:
         GridLayout
         {
@@ -87,7 +92,7 @@ CustomPopupDialog
                     id: nameInputBox
                     Layout.fillWidth: true
                     inputText: qsTr("New Scene")
-                    Component.onCompleted: selectAndFocus()
+                    onEnterPressed: popupRoot.accept()
                 }
             }
 
