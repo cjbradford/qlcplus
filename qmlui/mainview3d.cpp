@@ -634,7 +634,7 @@ void MainView3D::initializeFixture(quint32 fxID, QEntity *fxEntity, QComponent *
     else
     {
         QSizeF size = FixtureUtils::item2DDimension(fxMode, MonitorProperties::TopView);
-        QPointF itemPos = FixtureUtils::getAvailable2DPosition(m_doc, MonitorProperties::TopView,
+        QPointF itemPos = FixtureUtils::available2DPosition(m_doc, MonitorProperties::TopView,
                                                                QRectF(0, 0, size.width(), size.height()));
         // add the new fixture to the Doc monitor properties
         fxPos = QVector3D(itemPos.x(), 1000.0, itemPos.y());
@@ -642,15 +642,13 @@ void MainView3D::initializeFixture(quint32 fxID, QEntity *fxEntity, QComponent *
         Tardis::instance()->enqueueAction(FixtureSetPosition, fixture->id(), QVariant(QVector3D(0, 0, 0)), QVariant(fxPos));
     }
 
-    updateFixturePosition(fxID, fxPos);
-    updateFixtureScale(fxID, fxSize);
-    updateFixtureRotation(fxID, m_monProps->fixtureRotation(fxID));
-
     /* Hook the object picker to the base entity */
     picker->setParent(meshRef->m_rootItem);
     meshRef->m_rootItem->addComponent(picker);
 
-    updateFixture(fixture);
+    updateFixtureScale(fxID, fxSize);
+    updateFixturePosition(fxID, fxPos);
+    updateFixtureRotation(fxID, m_monProps->fixtureRotation(fxID));
 
     QLayer *selectionLayer = m_sceneRootEntity->property("selectionLayer").value<QLayer *>();
     QGeometryRenderer *selectionMesh = m_sceneRootEntity->property("selectionMesh").value<QGeometryRenderer *>();
@@ -669,6 +667,9 @@ void MainView3D::initializeFixture(quint32 fxID, QEntity *fxEntity, QComponent *
         QMetaObject::invokeMethod(meshRef->m_selectionBox, "bindFixtureTransform",
                 Q_ARG(QVariant, fixture->id()),
                 Q_ARG(QVariant, QVariant::fromValue(meshRef->m_rootTransform)));
+
+    // at last, preview the fixture channels
+    updateFixture(fixture);
 }
 
 void MainView3D::updateFixture(Fixture *fixture)
@@ -793,7 +794,7 @@ void MainView3D::updateFixturePosition(quint32 fxID, QVector3D pos)
     qDebug() << Q_FUNC_INFO << pos;
 
     float x = (pos.x() / 1000.0) - (m_monProps->gridSize().x() / 2) + (mesh->m_volume.m_extents.x() / 2);
-    float y = (pos.y() / 1000.0) + (mesh->m_volume.m_extents.y() / 2);
+    float y = (pos.y() / 1000.0);
     float z = (pos.z() / 1000.0) - (m_monProps->gridSize().z() / 2) + (mesh->m_volume.m_extents.z() / 2);
 
     /* move the root mesh first */

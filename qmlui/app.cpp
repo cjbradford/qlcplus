@@ -105,8 +105,8 @@ void App::startup()
 
     rootContext()->setContextProperty("qlcplus", this);
 
-    m_pixelDensity = screen()->physicalDotsPerInch() *  0.039370;
-    qDebug() << "Pixel density:" << m_pixelDensity;
+    m_pixelDensity = qMax(screen()->physicalDotsPerInch() *  0.039370, (qreal)screen()->size().height() / 220.0);
+    qDebug() << "Pixel density:" << m_pixelDensity << "size:" << screen()->physicalSize();
 
     rootContext()->setContextProperty("screenPixelDensity", m_pixelDensity);
 
@@ -536,6 +536,10 @@ bool App::saveWorkspace(const QString &fileName)
     /* Always use the workspace suffix */
     if (localFilename.right(4) != KExtWorkspace)
         localFilename += KExtWorkspace;
+
+    /* Set the workspace path before saving the new XML. In this way local files
+       can be loaded even if the workspace file will be moved */
+    m_doc->setWorkspacePath(QFileInfo(localFilename).absolutePath());
 
     if (saveXML(localFilename) == QFile::NoError)
     {

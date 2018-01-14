@@ -28,6 +28,7 @@
 #include "functionmanager.h"
 #include "fixturemanager.h"
 #include "qlcfixturemode.h"
+#include "fixtureutils.h"
 #include "mainviewdmx.h"
 #include "mainview2d.h"
 #include "mainview3d.h"
@@ -290,9 +291,14 @@ void ContextManager::setPositionPickPoint(QVector3D point)
             if (xLeft && !zBack)
                 panDeg = 90.0 + (90.0 - panDeg);
             else if(!xLeft && !zBack)
-                panDeg = 180.0 + (90.0 - panDeg);
+                panDeg = 180.0 + panDeg;
             else if(!xLeft && zBack)
                 panDeg = 270.0 + (90.0 - panDeg);
+
+            // subtract the current fixture rotation
+            panDeg -= mProps->fixtureRotation(fxID).y();
+            if (panDeg < 0)
+                panDeg += 360;
 
             qDebug() << "Fixture" << fxID << "pan degrees:" << panDeg;
 
@@ -611,15 +617,12 @@ void ContextManager::setFixturesAlignment(int alignment)
     foreach(quint32 fxID, m_selectedFixtures)
     {
         QVector3D fxPos = mProps->fixturePosition(fxID);
-
-        switch(alignment)
-        {
-            case Qt::AlignTop: fxPos.setY(firstPos.y()); break;
-            case Qt::AlignLeft: fxPos.setX(firstPos.x()); break;
-        }
+        FixtureUtils::alignItem(firstPos, fxPos, mProps->pointOfView(), alignment);
         mProps->setFixturePosition(fxID, fxPos);
         if (m_2DView->isEnabled())
             m_2DView->updateFixturePosition(fxID, fxPos);
+        if (m_3DView->isEnabled())
+            m_3DView->updateFixturePosition(fxID, fxPos);
     }
 }
 
